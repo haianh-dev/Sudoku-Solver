@@ -1,8 +1,106 @@
 @import "tailwindcss";
 
+:root,
+body[data-theme="light"] {
+  --page-bg:
+    radial-gradient(circle at 12% 10%, rgba(129, 140, 248, 0.24), transparent 32%),
+    radial-gradient(circle at 88% 85%, rgba(167, 139, 250, 0.24), transparent 34%),
+    #eef2ff;
+  --text-color: #1e1b4b;
+  --muted-text: #4c1d95;
+  --panel-bg: rgba(255, 255, 255, 0.84);
+  --panel-border: rgba(99, 102, 241, 0.35);
+  --surface-bg: rgba(238, 242, 255, 0.76);
+  --surface-strong: rgba(224, 231, 255, 0.88);
+  --button-solid-bg: linear-gradient(135deg, #4338ca, #7c3aed);
+  --button-solid-text: #f8fafc;
+  --accent-text: #5b21b6;
+  --accent-border: rgba(124, 58, 237, 0.5);
+  --grid-shell-bg: rgba(224, 231, 255, 0.65);
+  --grid-cell-bg: rgba(255, 255, 255, 0.95);
+  --grid-focus-bg: rgba(224, 231, 255, 0.94);
+  --grid-outline: rgba(99, 102, 241, 0.42);
+  --grid-major-line: rgba(67, 56, 202, 0.82);
+  --grid-minor-line: rgba(129, 140, 248, 0.35);
+}
+
+body[data-theme="dark"] {
+  --page-bg:
+    radial-gradient(circle at 12% 10%, rgba(99, 102, 241, 0.28), transparent 32%),
+    radial-gradient(circle at 88% 85%, rgba(139, 92, 246, 0.26), transparent 34%),
+    #09090f;
+  --text-color: #eef2ff;
+  --muted-text: #c4b5fd;
+  --panel-bg: rgba(15, 23, 42, 0.68);
+  --panel-border: rgba(167, 139, 250, 0.45);
+  --surface-bg: rgba(30, 41, 59, 0.7);
+  --surface-strong: rgba(51, 65, 85, 0.78);
+  --button-solid-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --button-solid-text: #eef2ff;
+  --accent-text: #93c5fd;
+  --accent-border: rgba(56, 189, 248, 0.6);
+  --grid-shell-bg: rgba(15, 23, 42, 0.78);
+  --grid-cell-bg: rgba(15, 23, 42, 0.9);
+  --grid-focus-bg: rgba(30, 41, 59, 0.98);
+  --grid-outline: rgba(125, 211, 252, 0.45);
+  --grid-major-line: rgba(147, 197, 253, 0.9);
+  --grid-minor-line: rgba(125, 211, 252, 0.35);
+}
+
+body[data-theme="contrast"] {
+  --page-bg:
+    radial-gradient(circle at 12% 10%, rgba(76, 29, 149, 0.34), transparent 32%),
+    radial-gradient(circle at 88% 85%, rgba(55, 48, 163, 0.34), transparent 34%),
+    #000000;
+  --text-color: #ffffff;
+  --muted-text: #c4b5fd;
+  --panel-bg: rgba(10, 10, 10, 0.94);
+  --panel-border: rgba(253, 224, 71, 0.88);
+  --surface-bg: rgba(23, 23, 23, 1);
+  --surface-strong: rgba(38, 38, 38, 1);
+  --button-solid-bg: linear-gradient(135deg, #fde047, #eab308);
+  --button-solid-text: #111827;
+  --accent-text: #fef08a;
+  --accent-border: rgba(250, 204, 21, 1);
+  --grid-shell-bg: rgba(23, 23, 23, 1);
+  --grid-cell-bg: rgba(5, 5, 5, 1);
+  --grid-focus-bg: rgba(39, 39, 42, 1);
+  --grid-outline: rgba(250, 204, 21, 0.98);
+  --grid-major-line: rgba(250, 204, 21, 0.98);
+  --grid-minor-line: rgba(250, 204, 21, 0.6);
+}
+
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--page-bg);
+  color: var(--text-color);
   font-family: var(--font-inter), "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+body[data-theme="dark"] section,
+body[data-theme="dark"] input,
+body[data-theme="dark"] button {
+  border-image: linear-gradient(135deg, rgba(56, 189, 248, 0.65), rgba(167, 139, 250, 0.65)) 1;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35), 0 0 18px rgba(56, 189, 248, 0.14);
+}
+
+.sudoku-pattern {
+  opacity: 0.11;
+  background-image:
+    linear-gradient(to right, rgba(129, 140, 248, 0.38) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(129, 140, 248, 0.38) 1px, transparent 1px),
+    linear-gradient(to right, rgba(99, 102, 241, 0.56) 2px, transparent 2px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.56) 2px, transparent 2px);
+  background-size: 30px 30px, 30px 30px, 90px 90px, 90px 90px;
+  mask-image: radial-gradient(circle at 50% 50%, black 25%, transparent 82%);
+}
+
+body[data-theme="contrast"] .sudoku-pattern {
+  opacity: 0.14;
+  background-image:
+    linear-gradient(to right, rgba(253, 224, 71, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(253, 224, 71, 0.5) 1px, transparent 1px),
+    linear-gradient(to right, rgba(250, 204, 21, 0.78) 2px, transparent 2px),
+    linear-gradient(to bottom, rgba(250, 204, 21, 0.78) 2px, transparent 2px);
 }

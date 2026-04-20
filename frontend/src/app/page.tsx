@@ -188,13 +188,13 @@ export default function Home() {
       <div className="sudoku-pattern pointer-events-none absolute inset-0" />
 
       <section className="relative z-10 w-full rounded-3xl border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-md sm:p-8">
-        <h1 className="mb-2 text-center text-2xl font-semibold sm:text-3xl">Sudoku Solver</h1>
+        <h1 className="outlined-text mb-2 text-center text-2xl font-semibold sm:text-3xl">Sudoku Solver</h1>
         <p className="mb-6 text-center text-sm text-[var(--muted-text)] sm:text-base">
           Enter numbers from 1 to 9, then click Solve to send the board to the backend.
         </p>
 
         <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
-          <div className="relative inline-grid grid-cols-3 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1 shadow-inner">
+          <div className="control-frame relative inline-grid grid-cols-3 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1 shadow-inner">
             <span
               className="pointer-events-none absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-xl bg-[var(--button-solid-bg)] shadow-[0_6px_18px_rgba(79,70,229,0.45)] transition-transform duration-300 ease-out"
               style={{ transform: `translateX(calc(${activeThemeIndex} * 100%))` }}
@@ -207,7 +207,7 @@ export default function Home() {
                   key={option.value}
                   type="button"
                   onClick={() => setThemeMode(option.value)}
-                  className={`relative z-10 inline-flex min-w-28 items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                  className={`theme-option-label relative z-10 inline-flex min-w-28 items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
                     isActive
                       ? "theme-option-active text-[var(--button-solid-text)]"
                       : "text-[var(--muted-text)] hover:bg-[var(--surface-strong)]"
@@ -225,7 +225,7 @@ export default function Home() {
             type="button"
             onClick={handleSolve}
             disabled={isLoading}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--button-solid-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-solid-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+            className="control-pill outlined-text inline-flex items-center gap-2 rounded-xl bg-[var(--button-solid-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-solid-text)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading && (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--button-solid-text)]/40 border-t-[var(--button-solid-text)]" />
@@ -236,7 +236,7 @@ export default function Home() {
             type="button"
             onClick={handleClear}
             disabled={isLoading}
-            className="rounded-xl border border-[var(--panel-border)] bg-[var(--surface-bg)] px-4 py-2 text-sm font-semibold text-[var(--text-color)] transition hover:bg-[var(--surface-strong)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="control-pill outlined-text rounded-xl border border-[var(--panel-border)] bg-[var(--surface-bg)] px-4 py-2 text-sm font-semibold text-[var(--text-color)] transition hover:bg-[var(--surface-strong)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             Clear All
           </button>
@@ -244,7 +244,7 @@ export default function Home() {
             type="button"
             onClick={handleRandom}
             disabled={isLoading}
-            className="rounded-xl border border-[var(--accent-border)] bg-[var(--surface-strong)] px-4 py-2 text-sm font-semibold text-[var(--accent-text)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+            className="control-pill outlined-text rounded-xl border border-[var(--accent-border)] bg-[var(--surface-strong)] px-4 py-2 text-sm font-semibold text-[var(--accent-text)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
           >
             Load Sample
           </button>

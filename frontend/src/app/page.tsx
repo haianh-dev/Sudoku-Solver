@@ -1,23 +1,21 @@
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  MAX_SOLVE_HISTORY,
+  PuzzleDifficulty,
+  SOLVE_HISTORY_STORAGE_KEY,
+  SolveHistoryEntry,
+  parseSolveHistory
+} from "../lib/solveHistory";
 
 const GRID_SIZE = 9;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const EMPTY_GRID = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => ""));
-type PuzzleDifficulty = "Easy" | "Medium" | "Hard";
-
 type SamplePuzzle = {
   difficulty: PuzzleDifficulty;
   board: number[][];
-};
-
-type SolveStatus = "Solved";
-
-type SolveHistoryEntry = {
-  timestamp: string;
-  difficulty: PuzzleDifficulty | "Custom";
-  status: SolveStatus;
 };
 
 const SAMPLE_PUZZLES: SamplePuzzle[] = [
@@ -200,8 +198,6 @@ type SolveResponse = {
 type ThemeMode = "light" | "dark" | "contrast";
 
 const THEME_STORAGE_KEY = "sudoku-theme-mode";
-const SOLVE_HISTORY_STORAGE_KEY = "sudoku-recent-solves";
-const MAX_SOLVE_HISTORY = 12;
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "light", label: "Light" },
   { value: "dark", label: "Dark" },
@@ -283,18 +279,7 @@ export default function Home() {
 
   useEffect(() => {
     const savedHistory = window.localStorage.getItem(SOLVE_HISTORY_STORAGE_KEY);
-    if (!savedHistory) {
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(savedHistory) as SolveHistoryEntry[];
-      if (Array.isArray(parsed)) {
-        setRecentSolves(parsed.slice(0, MAX_SOLVE_HISTORY));
-      }
-    } catch {
-      setRecentSolves([]);
-    }
+    setRecentSolves(parseSolveHistory(savedHistory));
   }, []);
 
   const handleChange = (row: number, col: number, event: ChangeEvent<HTMLInputElement>) => {
@@ -389,7 +374,9 @@ export default function Home() {
       const newHistoryEntry: SolveHistoryEntry = {
         timestamp: new Date().toISOString(),
         difficulty: currentPuzzleDifficulty,
-        status: "Solved"
+        status: "Solved",
+        unsolvedBoard: toBoardPayload(inputGrid),
+        solvedBoard: solveData.board
       };
       setRecentSolves((prev) => {
         const updatedHistory = [newHistoryEntry, ...prev].slice(0, MAX_SOLVE_HISTORY);
@@ -472,6 +459,12 @@ export default function Home() {
           >
             Random Puzzle
           </button>
+          <Link
+            href="/history"
+            className="control-pill outlined-text rounded-xl border border-[var(--panel-border)] bg-[var(--surface-bg)] px-4 py-2 text-sm font-semibold text-[var(--text-color)] transition hover:bg-[var(--surface-strong)]"
+          >
+            View History
+          </Link>
         </div>
 
         {statusMessage && (

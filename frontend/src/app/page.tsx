@@ -1,12 +1,18 @@
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  MAX_SOLVE_HISTORY,
+  PuzzleDifficulty,
+  SOLVE_HISTORY_STORAGE_KEY,
+  SolveHistoryEntry,
+  parseSolveHistory
+} from "../lib/solveHistory";
 
 const GRID_SIZE = 9;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const EMPTY_GRID = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => ""));
-type PuzzleDifficulty = "Easy" | "Medium" | "Hard";
-
 type SamplePuzzle = {
   difficulty: PuzzleDifficulty;
   board: number[][];
@@ -252,6 +258,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [lastRandomPuzzleIndex, setLastRandomPuzzleIndex] = useState<number | null>(null);
+  const [currentPuzzleDifficulty, setCurrentPuzzleDifficulty] = useState<PuzzleDifficulty | "Custom">("Custom");
+  const [recentSolves, setRecentSolves] = useState<SolveHistoryEntry[]>([]);
   const activeThemeIndex = Math.max(
     0,
     THEME_OPTIONS.findIndex((option) => option.value === themeMode)
@@ -268,6 +276,11 @@ export default function Home() {
     document.body.setAttribute("data-theme", themeMode);
     window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    const savedHistory = window.localStorage.getItem(SOLVE_HISTORY_STORAGE_KEY);
+    setRecentSolves(parseSolveHistory(savedHistory));
+  }, []);
 
   const handleChange = (row: number, col: number, event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value.slice(-1);
@@ -288,6 +301,7 @@ export default function Home() {
     setSolverFilledMask(createBooleanGrid(false));
     setStatusMessage(null);
     setErrorMessage(null);
+    setCurrentPuzzleDifficulty("Custom");
   };
 
   const handleClear = () => {
@@ -295,6 +309,7 @@ export default function Home() {
     setSolverFilledMask(createBooleanGrid(false));
     setStatusMessage(null);
     setErrorMessage(null);
+    setCurrentPuzzleDifficulty("Custom");
   };
 
   const handleRandom = () => {
@@ -306,6 +321,7 @@ export default function Home() {
     setGrid(toDisplayGrid(selectedPuzzle.board));
     setSolverFilledMask(createBooleanGrid(false));
     setLastRandomPuzzleIndex(randomIndex);
+    setCurrentPuzzleDifficulty(selectedPuzzle.difficulty);
     setStatusMessage(`Random puzzle loaded (${selectedPuzzle.difficulty}). Click Solve to test the solver.`);
     setErrorMessage(null);
   };
@@ -355,6 +371,18 @@ export default function Home() {
       setGrid(toDisplayGrid(solveData.board));
       setSolverFilledMask(nextMask);
       setStatusMessage("Success! Puzzle solved. Your entries stay dark, solver-filled cells are highlighted.");
+      const newHistoryEntry: SolveHistoryEntry = {
+        timestamp: new Date().toISOString(),
+        difficulty: currentPuzzleDifficulty,
+        status: "Solved",
+        unsolvedBoard: toBoardPayload(inputGrid),
+        solvedBoard: solveData.board
+      };
+      setRecentSolves((prev) => {
+        const updatedHistory = [newHistoryEntry, ...prev].slice(0, MAX_SOLVE_HISTORY);
+        window.localStorage.setItem(SOLVE_HISTORY_STORAGE_KEY, JSON.stringify(updatedHistory));
+        return updatedHistory;
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unexpected error occurred while solving the puzzle.";
       setErrorMessage(message);
@@ -431,6 +459,12 @@ export default function Home() {
           >
             Random Puzzle
           </button>
+          <Link
+            href="/history"
+            className="control-pill outlined-text rounded-xl border border-[var(--panel-border)] bg-[var(--surface-bg)] px-4 py-2 text-sm font-semibold text-[var(--text-color)] transition hover:bg-[var(--surface-strong)]"
+          >
+            View History
+          </Link>
         </div>
 
         {statusMessage && (
@@ -480,6 +514,34 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        <section className="mt-6 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-4">
+          <h2 className="outlined-text mb-3 text-lg font-semibold">Recent Solves</h2>
+          {recentSolves.length === 0 ? (
+            <p className="text-sm text-[var(--muted-text)]">No solved puzzles yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--panel-border)] text-[var(--muted-text)]">
+                    <th className="px-2 py-2 font-semibold">Time</th>
+                    <th className="px-2 py-2 font-semibold">Difficulty</th>
+                    <th className="px-2 py-2 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSolves.map((entry, index) => (
+                    <tr key={`${entry.timestamp}-${index}`} className="border-b border-[var(--panel-border)]/60 last:border-b-0">
+                      <td className="outlined-text px-2 py-2">{new Date(entry.timestamp).toLocaleString()}</td>
+                      <td className="outlined-text px-2 py-2">{entry.difficulty}</td>
+                      <td className="outlined-text px-2 py-2 text-emerald-300">{entry.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </section>
     </main>
   );

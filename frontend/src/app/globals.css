@@ -22,6 +22,9 @@ body[data-theme="light"] {
   --grid-outline: rgba(99, 102, 241, 0.42);
   --grid-major-line: rgba(67, 56, 202, 0.82);
   --grid-minor-line: rgba(129, 140, 248, 0.35);
+  --theme-active-text-stroke: rgba(49, 46, 129, 0.68);
+  --theme-active-text-glow: rgba(224, 231, 255, 0.95);
+  --tech-bg-opacity: 0.2;
 }
 
 body[data-theme="dark"] {
@@ -45,6 +48,9 @@ body[data-theme="dark"] {
   --grid-outline: rgba(125, 211, 252, 0.45);
   --grid-major-line: rgba(147, 197, 253, 0.9);
   --grid-minor-line: rgba(125, 211, 252, 0.35);
+  --theme-active-text-stroke: rgba(12, 10, 24, 0.72);
+  --theme-active-text-glow: rgba(224, 231, 255, 0.35);
+  --tech-bg-opacity: 0.28;
 }
 
 body[data-theme="contrast"] {
@@ -68,6 +74,9 @@ body[data-theme="contrast"] {
   --grid-outline: rgba(250, 204, 21, 0.98);
   --grid-major-line: rgba(250, 204, 21, 0.98);
   --grid-minor-line: rgba(250, 204, 21, 0.6);
+  --theme-active-text-stroke: rgba(17, 24, 39, 0.95);
+  --theme-active-text-glow: rgba(255, 255, 255, 0.5);
+  --tech-bg-opacity: 0.26;
 }
 
 body {
@@ -85,6 +94,17 @@ body[data-theme="dark"] button {
   box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35), 0 0 18px rgba(56, 189, 248, 0.14);
 }
 
+.tech-background {
+  opacity: var(--tech-bg-opacity);
+  background-image:
+    linear-gradient(180deg, rgba(8, 14, 42, 0.8), rgba(8, 14, 42, 0.8)),
+    url("/tech-background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+
 .sudoku-pattern {
   opacity: 0.11;
   background-image:
@@ -94,6 +114,15 @@ body[data-theme="dark"] button {
     linear-gradient(to bottom, rgba(99, 102, 241, 0.56) 2px, transparent 2px);
   background-size: 30px 30px, 30px 30px, 90px 90px, 90px 90px;
   mask-image: radial-gradient(circle at 50% 50%, black 25%, transparent 82%);
+}
+
+.theme-option-active {
+  text-shadow:
+    -0.6px 0 var(--theme-active-text-stroke),
+    0.6px 0 var(--theme-active-text-stroke),
+    0 -0.6px var(--theme-active-text-stroke),
+    0 0.6px var(--theme-active-text-stroke),
+    0 0 8px var(--theme-active-text-glow);
 }
 
 body[data-theme="contrast"] .sudoku-pattern {

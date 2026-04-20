@@ -32,6 +32,32 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "contrast", label: "High Contrast" }
 ];
 
+function ThemeIcon({ mode }: { mode: ThemeMode }) {
+  if (mode === "light") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2" />
+        <path d="M12 2.8v2.4M12 18.8v2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M2.8 12h2.4M18.8 12h2.4M5.3 18.7 7 17M17 7l1.7-1.7" />
+      </svg>
+    );
+  }
+
+  if (mode === "dark") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <path d="M20 14.2A8.3 8.3 0 1 1 9.8 4a6.8 6.8 0 0 0 10.2 10.2Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2.2" />
+      <path d="M8 8h8M8 12h8M8 16h8" />
+    </svg>
+  );
+}
+
 function isValidDigit(value: string): boolean {
   return value === "" || /^[1-9]$/.test(value);
 }
@@ -55,6 +81,10 @@ export default function Home() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+  const activeThemeIndex = Math.max(
+    0,
+    THEME_OPTIONS.findIndex((option) => option.value === themeMode)
+  );
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -154,6 +184,7 @@ export default function Home() {
     <main className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-6 overflow-hidden px-4 py-8 sm:py-12">
       <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(129,140,248,0.24)_0%,_rgba(129,140,248,0)_72%)]" />
       <div className="pointer-events-none absolute -bottom-28 -right-24 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(167,139,250,0.28)_0%,_rgba(167,139,250,0)_72%)]" />
+      <div className="tech-background pointer-events-none absolute inset-0" />
       <div className="sudoku-pattern pointer-events-none absolute inset-0" />
 
       <section className="relative z-10 w-full rounded-3xl border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-md sm:p-8">
@@ -163,7 +194,12 @@ export default function Home() {
         </p>
 
         <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
-          <div className="inline-flex rounded-xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1">
+          <div className="relative inline-grid grid-cols-3 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1 shadow-inner">
+            <span
+              className="pointer-events-none absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-xl bg-[var(--button-solid-bg)] shadow-[0_6px_18px_rgba(79,70,229,0.45)] transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(calc(${activeThemeIndex} * 100%))` }}
+              aria-hidden="true"
+            />
             {THEME_OPTIONS.map((option) => {
               const isActive = themeMode === option.value;
               return (
@@ -171,13 +207,14 @@ export default function Home() {
                   key={option.value}
                   type="button"
                   onClick={() => setThemeMode(option.value)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                  className={`relative z-10 inline-flex min-w-28 items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
                     isActive
-                      ? "bg-[var(--button-solid-bg)] text-[var(--button-solid-text)]"
+                      ? "theme-option-active text-[var(--button-solid-text)]"
                       : "text-[var(--muted-text)] hover:bg-[var(--surface-strong)]"
                   }`}
                   aria-pressed={isActive}
                 >
+                  <ThemeIcon mode={option.value} />
                   {option.label}
                 </button>
               );

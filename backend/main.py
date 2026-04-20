@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 
 from solver_logic import solve_sudoku
 
@@ -16,21 +16,31 @@ app.add_middleware(
 
 
 class SolveRequest(BaseModel):
-    board: list[list[int]] = Field(..., description="Sudoku board 9x9, 0 means empty")
+    size: int = Field(9, description="Sudoku size NxN (e.g. 4, 9)")
+    board: list[list[int]] = Field(..., description="Sudoku board NxN, 0 means empty")
 
-    @field_validator("board")
-    @classmethod
-    def validate_board(cls, board: list[list[int]]) -> list[list[int]]:
-        if len(board) != 9:
-            raise ValueError("Board must have exactly 9 rows.")
+    @model_validator(mode="after")
+    def validate_board(self) -> "SolveRequest":
+        size = self.size
+        board = self.board
+        sqrt_size = int(size**0.5)
+
+        if size <= 0:
+            raise ValueError("Size must be a positive integer.")
+        if sqrt_size * sqrt_size != size:
+            raise ValueError(f"Invalid size {size}. Supported sizes require square sub-grids (e.g. 4, 9, 16).")
+
+        if len(board) != size:
+            raise ValueError(f"Board for size {size} must have exactly {size} rows.")
 
         for row in board:
-            if len(row) != 9:
-                raise ValueError("Each row must have exactly 9 columns.")
+            if len(row) != size:
+                raise ValueError(f"Each row for size {size} must have exactly {size} columns.")
             for value in row:
-                if not isinstance(value, int) or value < 0 or value > 9:
-                    raise ValueError("Board values must be integers between 0 and 9.")
-        return board
+                if not isinstance(value, int) or value < 0 or value > size:
+                    raise ValueError(f"Board values for size {size} must be integers between 0 and {size}.")
+
+        return self
 
 
 class SolveResponse(BaseModel):
@@ -47,11 +57,17 @@ def health_check() -> dict[str, str]:
 @app.post("/solve", response_model=SolveResponse)
 def solve(request: SolveRequest) -> SolveResponse:
     try:
-        result = solve_sudoku(request.board)
+        result = solve_sudoku(request.board, request.size)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Solver failed: {exc}") from exc
 
     if result is None:
-        return SolveResponse(solved=False, board=None, error="Khong the giai board nay.")
+        return SolveResponse(
+            solved=False,
+            board=None,
+            error=f"Unable to solve this {request.size}x{request.size} board. Please check the input constraints."
+        )
 
     return SolveResponse(solved=True, board=result, error=None)

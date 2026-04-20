@@ -4,18 +4,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SOLVE_HISTORY_STORAGE_KEY, SolveHistoryEntry, parseSolveHistory } from "../../lib/solveHistory";
 
+function getVisualBlockSize(size: number): number {
+  if (size === 4) {
+    return 2;
+  }
+  if (size === 9) {
+    return 3;
+  }
+  const root = Math.floor(Math.sqrt(size));
+  return root > 1 ? root : size;
+}
+
 function renderBoard(board: number[][]) {
+  const size = board.length;
+  const blockSize = getVisualBlockSize(size);
   return (
-    <div className="grid w-fit grid-cols-9 gap-0.5 rounded-xl border border-[var(--grid-outline)] bg-[var(--grid-shell-bg)] p-1">
+    <div
+      className="grid w-fit gap-0.5 rounded-xl border border-[var(--grid-outline)] bg-[var(--grid-shell-bg)] p-1"
+      style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+    >
       {board.map((row, rowIndex) =>
         row.map((value, colIndex) => {
-          const thickTop = rowIndex % 3 === 0 ? "border-t-2 border-t-[var(--grid-major-line)]" : "border-t";
+          const thickTop = rowIndex % blockSize === 0 ? "border-t-2 border-t-[var(--grid-major-line)]" : "border-t";
           const thickLeft =
-            colIndex % 3 === 0 ? "border-l-2 border-l-[var(--grid-major-line)]" : "border-l border-l-[var(--grid-minor-line)]";
+            colIndex % blockSize === 0
+              ? "border-l-2 border-l-[var(--grid-major-line)]"
+              : "border-l border-l-[var(--grid-minor-line)]";
           const thickRight =
-            colIndex === 8 ? "border-r-2 border-r-[var(--grid-major-line)]" : "border-r border-r-[var(--grid-minor-line)]";
+            colIndex === size - 1 ? "border-r-2 border-r-[var(--grid-major-line)]" : "border-r border-r-[var(--grid-minor-line)]";
           const thickBottom =
-            rowIndex === 8 ? "border-b-2 border-b-[var(--grid-major-line)]" : "border-b border-b-[var(--grid-minor-line)]";
+            rowIndex === size - 1 ? "border-b-2 border-b-[var(--grid-major-line)]" : "border-b border-b-[var(--grid-minor-line)]";
 
           return (
             <div
@@ -70,6 +88,9 @@ export default function HistoryPage() {
                   Time: {new Date(entry.timestamp).toLocaleString()}
                 </p>
                 <div className="flex items-center gap-2 text-sm">
+                  <span className="rounded-md border border-[var(--panel-border)] bg-[var(--surface-bg)] px-2 py-1 font-semibold">
+                    Size: {entry.size}x{entry.size}
+                  </span>
                   <span className="rounded-md border border-[var(--panel-border)] bg-[var(--surface-bg)] px-2 py-1 font-semibold">
                     Difficulty: {entry.difficulty}
                   </span>

@@ -10,16 +10,50 @@ import {
   parseSolveHistory
 } from "../lib/solveHistory";
 
-const GRID_SIZE = 9;
+type GridSize = 4 | 9;
+
+const GRID_SIZES: GridSize[] = [4, 9];
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-const EMPTY_GRID = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => ""));
+
 type SamplePuzzle = {
+  size: GridSize;
   difficulty: PuzzleDifficulty;
   board: number[][];
 };
 
 const SAMPLE_PUZZLES: SamplePuzzle[] = [
   {
+    size: 4,
+    difficulty: "Easy",
+    board: [
+      [1, 0, 0, 4],
+      [0, 4, 1, 0],
+      [2, 0, 4, 3],
+      [0, 3, 0, 1]
+    ]
+  },
+  {
+    size: 4,
+    difficulty: "Medium",
+    board: [
+      [0, 2, 0, 4],
+      [0, 0, 1, 0],
+      [2, 1, 0, 3],
+      [0, 0, 2, 0]
+    ]
+  },
+  {
+    size: 4,
+    difficulty: "Hard",
+    board: [
+      [0, 0, 0, 4],
+      [0, 0, 1, 0],
+      [2, 0, 0, 0],
+      [0, 3, 0, 0]
+    ]
+  },
+  {
+    size: 9,
     difficulty: "Easy",
     board: [
       [5, 3, 0, 0, 7, 0, 0, 0, 0],
@@ -34,48 +68,7 @@ const SAMPLE_PUZZLES: SamplePuzzle[] = [
     ]
   },
   {
-    difficulty: "Easy",
-    board: [
-      [0, 2, 0, 6, 0, 8, 0, 0, 0],
-      [5, 8, 0, 0, 0, 9, 7, 0, 0],
-      [0, 0, 0, 0, 4, 0, 0, 0, 0],
-      [3, 7, 0, 0, 0, 0, 5, 0, 0],
-      [6, 0, 0, 0, 0, 0, 0, 0, 4],
-      [0, 0, 8, 0, 0, 0, 0, 1, 3],
-      [0, 0, 0, 0, 2, 0, 0, 0, 0],
-      [0, 0, 9, 8, 0, 0, 0, 3, 6],
-      [0, 0, 0, 3, 0, 6, 0, 9, 0]
-    ]
-  },
-  {
-    difficulty: "Easy",
-    board: [
-      [2, 0, 0, 0, 8, 0, 3, 0, 0],
-      [0, 6, 0, 0, 7, 0, 0, 8, 4],
-      [0, 3, 0, 5, 0, 0, 2, 0, 9],
-      [0, 0, 0, 1, 0, 5, 4, 0, 8],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [4, 0, 2, 7, 0, 6, 0, 0, 0],
-      [3, 0, 1, 0, 0, 7, 0, 4, 0],
-      [7, 2, 0, 0, 4, 0, 0, 6, 0],
-      [0, 0, 4, 0, 1, 0, 0, 0, 3]
-    ]
-  },
-  {
-    difficulty: "Easy",
-    board: [
-      [0, 0, 0, 2, 6, 0, 7, 0, 1],
-      [6, 8, 0, 0, 7, 0, 0, 9, 0],
-      [1, 9, 0, 0, 0, 4, 5, 0, 0],
-      [8, 2, 0, 1, 0, 0, 0, 4, 0],
-      [0, 0, 4, 6, 0, 2, 9, 0, 0],
-      [0, 5, 0, 0, 0, 3, 0, 2, 8],
-      [0, 0, 9, 3, 0, 0, 0, 7, 4],
-      [0, 4, 0, 0, 5, 0, 0, 3, 6],
-      [7, 0, 3, 0, 1, 8, 0, 0, 0]
-    ]
-  },
-  {
+    size: 9,
     difficulty: "Medium",
     board: [
       [0, 0, 0, 0, 0, 0, 2, 0, 0],
@@ -90,48 +83,7 @@ const SAMPLE_PUZZLES: SamplePuzzle[] = [
     ]
   },
   {
-    difficulty: "Medium",
-    board: [
-      [0, 0, 0, 2, 0, 0, 0, 6, 3],
-      [3, 0, 0, 0, 0, 5, 4, 0, 1],
-      [0, 0, 1, 0, 0, 3, 9, 8, 0],
-      [0, 0, 0, 0, 0, 0, 0, 9, 0],
-      [0, 0, 0, 5, 3, 8, 0, 0, 0],
-      [0, 3, 0, 0, 0, 0, 0, 0, 0],
-      [0, 2, 6, 3, 0, 0, 5, 0, 0],
-      [5, 0, 3, 7, 0, 0, 0, 0, 8],
-      [4, 7, 0, 0, 0, 1, 0, 0, 0]
-    ]
-  },
-  {
-    difficulty: "Medium",
-    board: [
-      [0, 0, 8, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 6, 0, 0, 0, 0, 3],
-      [0, 7, 0, 0, 9, 0, 2, 0, 0],
-      [0, 5, 0, 0, 0, 7, 0, 0, 0],
-      [0, 0, 0, 0, 4, 5, 7, 0, 0],
-      [0, 0, 0, 1, 0, 0, 0, 3, 0],
-      [0, 0, 1, 0, 0, 0, 0, 6, 8],
-      [0, 0, 8, 5, 0, 0, 0, 1, 0],
-      [0, 9, 0, 0, 0, 0, 4, 0, 0]
-    ]
-  },
-  {
-    difficulty: "Medium",
-    board: [
-      [0, 0, 0, 0, 0, 0, 0, 1, 2],
-      [0, 0, 0, 0, 0, 0, 7, 0, 0],
-      [0, 0, 1, 0, 9, 5, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 7, 0, 8, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 4, 1, 9, 5, 0, 0],
-      [0, 0, 8, 0, 0, 0, 0, 0, 0],
-      [6, 1, 0, 0, 0, 0, 0, 0, 0]
-    ]
-  },
-  {
+    size: 9,
     difficulty: "Hard",
     board: [
       [1, 0, 0, 0, 0, 7, 0, 9, 0],
@@ -143,48 +95,6 @@ const SAMPLE_PUZZLES: SamplePuzzle[] = [
       [3, 0, 0, 0, 0, 0, 0, 1, 0],
       [0, 4, 0, 0, 0, 0, 0, 0, 7],
       [0, 0, 7, 0, 0, 0, 3, 0, 0]
-    ]
-  },
-  {
-    difficulty: "Hard",
-    board: [
-      [8, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 3, 6, 0, 0, 0, 0, 0],
-      [0, 7, 0, 0, 9, 0, 2, 0, 0],
-      [0, 5, 0, 0, 0, 7, 0, 0, 0],
-      [0, 0, 0, 0, 4, 5, 7, 0, 0],
-      [0, 0, 0, 1, 0, 0, 0, 3, 0],
-      [0, 0, 1, 0, 0, 0, 0, 6, 8],
-      [0, 0, 8, 5, 0, 0, 0, 1, 0],
-      [0, 9, 0, 0, 0, 0, 4, 0, 0]
-    ]
-  },
-  {
-    difficulty: "Hard",
-    board: [
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 3, 0, 8, 5],
-      [0, 0, 1, 0, 2, 0, 0, 0, 0],
-      [0, 0, 0, 5, 0, 7, 0, 0, 0],
-      [0, 0, 4, 0, 0, 0, 1, 0, 0],
-      [0, 9, 0, 0, 0, 0, 0, 0, 0],
-      [5, 0, 0, 0, 0, 0, 0, 7, 3],
-      [0, 0, 2, 0, 1, 0, 0, 0, 0],
-      [0, 0, 0, 0, 4, 0, 0, 0, 9]
-    ]
-  },
-  {
-    difficulty: "Hard",
-    board: [
-      [0, 0, 5, 3, 0, 0, 0, 0, 0],
-      [8, 0, 0, 0, 0, 0, 0, 2, 0],
-      [0, 7, 0, 0, 1, 0, 5, 0, 0],
-      [4, 0, 0, 0, 0, 5, 3, 0, 0],
-      [0, 1, 0, 0, 7, 0, 0, 0, 6],
-      [0, 0, 3, 2, 0, 0, 0, 8, 0],
-      [0, 6, 0, 5, 0, 0, 0, 0, 9],
-      [0, 0, 4, 0, 0, 0, 0, 3, 0],
-      [0, 0, 0, 0, 0, 9, 7, 0, 0]
     ]
   }
 ];
@@ -242,28 +152,46 @@ function toDisplayGrid(board: number[][]): string[][] {
   return board.map((row) => row.map((value) => (value === 0 ? "" : String(value))));
 }
 
-function createBooleanGrid(defaultValue: boolean): boolean[][] {
-  return Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => defaultValue));
+function createEmptyGrid(size: number): string[][] {
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => ""));
+}
+
+function createBooleanGrid(size: number, defaultValue: boolean): boolean[][] {
+  return Array.from({ length: size }, () => Array.from({ length: size }, () => defaultValue));
 }
 
 function isGridEmpty(grid: string[][]): boolean {
   return grid.every((row) => row.every((value) => value === ""));
 }
 
+function getBlockSize(size: GridSize): number {
+  if (size === 4) {
+    return 2;
+  }
+  return 3;
+}
+
 export default function Home() {
-  const [grid, setGrid] = useState<string[][]>(EMPTY_GRID);
-  const [solverFilledMask, setSolverFilledMask] = useState<boolean[][]>(createBooleanGrid(false));
+  const [gridSize, setGridSize] = useState<GridSize>(9);
+  const [grid, setGrid] = useState<string[][]>(createEmptyGrid(9));
+  const [solverFilledMask, setSolverFilledMask] = useState<boolean[][]>(createBooleanGrid(9, false));
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
-  const [lastRandomPuzzleIndex, setLastRandomPuzzleIndex] = useState<number | null>(null);
+  const [lastRandomPuzzleIndexBySize, setLastRandomPuzzleIndexBySize] = useState<Partial<Record<GridSize, number>>>({});
   const [currentPuzzleDifficulty, setCurrentPuzzleDifficulty] = useState<PuzzleDifficulty | "Custom">("Custom");
   const [recentSolves, setRecentSolves] = useState<SolveHistoryEntry[]>([]);
   const activeThemeIndex = Math.max(
     0,
     THEME_OPTIONS.findIndex((option) => option.value === themeMode)
   );
+  const activeSizeIndex = GRID_SIZES.findIndex((size) => size === gridSize);
+  const blockSize = getBlockSize(gridSize);
+  const cellSizeClass =
+    gridSize === 4
+      ? "h-14 w-14 text-2xl sm:h-16 sm:w-16 sm:text-3xl"
+      : "h-9 w-9 text-base sm:h-10 sm:w-10 sm:text-lg";
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
@@ -284,7 +212,7 @@ export default function Home() {
 
   const handleChange = (row: number, col: number, event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value.slice(-1);
-    if (!isValidDigit(nextValue)) {
+    if (!isValidDigit(nextValue) || (nextValue !== "" && Number(nextValue) > gridSize)) {
       return;
     }
 
@@ -298,29 +226,49 @@ export default function Home() {
         })
       )
     );
-    setSolverFilledMask(createBooleanGrid(false));
+    setSolverFilledMask(createBooleanGrid(gridSize, false));
     setStatusMessage(null);
     setErrorMessage(null);
     setCurrentPuzzleDifficulty("Custom");
   };
 
+  const handleGridSizeChange = (nextSize: GridSize) => {
+    if (nextSize === gridSize) {
+      return;
+    }
+    setGridSize(nextSize);
+    setGrid(createEmptyGrid(nextSize));
+    setSolverFilledMask(createBooleanGrid(nextSize, false));
+    setStatusMessage(`Switched to ${nextSize}x${nextSize}. Grid has been reset.`);
+    setErrorMessage(null);
+    setCurrentPuzzleDifficulty("Custom");
+  };
+
   const handleClear = () => {
-    setGrid(EMPTY_GRID.map((row) => [...row]));
-    setSolverFilledMask(createBooleanGrid(false));
+    setGrid(createEmptyGrid(gridSize));
+    setSolverFilledMask(createBooleanGrid(gridSize, false));
     setStatusMessage(null);
     setErrorMessage(null);
     setCurrentPuzzleDifficulty("Custom");
   };
 
   const handleRandom = () => {
-    const candidateIndexes = SAMPLE_PUZZLES.map((_, index) => index).filter((index) => index !== lastRandomPuzzleIndex);
+    const puzzlesForSize = SAMPLE_PUZZLES.filter((puzzle) => puzzle.size === gridSize);
+    if (puzzlesForSize.length === 0) {
+      setStatusMessage(null);
+      setErrorMessage(`No sample puzzle is configured for ${gridSize}x${gridSize}.`);
+      return;
+    }
+
+    const lastIndex = lastRandomPuzzleIndexBySize[gridSize] ?? null;
+    const candidateIndexes = puzzlesForSize.map((_, index) => index).filter((index) => index !== lastIndex);
     const indexPool = candidateIndexes.length > 0 ? candidateIndexes : [0];
     const randomIndex = indexPool[Math.floor(Math.random() * indexPool.length)];
-    const selectedPuzzle = SAMPLE_PUZZLES[randomIndex];
+    const selectedPuzzle = puzzlesForSize[randomIndex];
 
     setGrid(toDisplayGrid(selectedPuzzle.board));
-    setSolverFilledMask(createBooleanGrid(false));
-    setLastRandomPuzzleIndex(randomIndex);
+    setSolverFilledMask(createBooleanGrid(gridSize, false));
+    setLastRandomPuzzleIndexBySize((prev) => ({ ...prev, [gridSize]: randomIndex }));
     setCurrentPuzzleDifficulty(selectedPuzzle.difficulty);
     setStatusMessage(`Random puzzle loaded (${selectedPuzzle.difficulty}). Click Solve to test the solver.`);
     setErrorMessage(null);
@@ -346,6 +294,7 @@ export default function Home() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          size: gridSize,
           board: toBoardPayload(inputGrid)
         })
       });
@@ -373,6 +322,7 @@ export default function Home() {
       setStatusMessage("Success! Puzzle solved. Your entries stay dark, solver-filled cells are highlighted.");
       const newHistoryEntry: SolveHistoryEntry = {
         timestamp: new Date().toISOString(),
+        size: gridSize,
         difficulty: currentPuzzleDifficulty,
         status: "Solved",
         unsolvedBoard: toBoardPayload(inputGrid),
@@ -399,10 +349,43 @@ export default function Home() {
       <div className="sudoku-pattern pointer-events-none absolute inset-0" />
 
       <section className="relative z-10 w-full rounded-3xl border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur-md sm:p-8">
-        <h1 className="outlined-text mb-2 text-center text-2xl font-semibold sm:text-3xl">Sudoku Solver</h1>
-        <p className="mb-6 text-center text-sm text-[var(--muted-text)] sm:text-base">
-          Enter numbers from 1 to 9, then click Solve to send the board to the backend.
+        <h1 className="outlined-text mb-2 text-center text-2xl font-semibold sm:text-3xl">
+          Sudoku Solver - {gridSize}x{gridSize} Grid
+        </h1>
+        <p className="mb-3 text-center text-sm text-[var(--muted-text)] sm:text-base">
+          Choose a grid size, enter values from 1 to {gridSize}, then click Solve.
         </p>
+        <p className="mb-6 text-center text-xs font-semibold uppercase tracking-wide text-[var(--muted-text)]">
+          {gridSize === 9 ? "Classic layout: 3x3 basic sub-grids." : "Compact layout: 2x2 sub-grids."}
+        </p>
+
+        <div className="mb-4 flex justify-center">
+          <div className="control-frame relative inline-grid grid-cols-3 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1 shadow-inner">
+            <span
+              className="pointer-events-none absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-xl bg-[var(--button-solid-bg)] shadow-[0_6px_18px_rgba(79,70,229,0.45)] transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(calc(${activeSizeIndex} * 100%))` }}
+              aria-hidden="true"
+            />
+            {GRID_SIZES.map((size) => {
+              const isActive = gridSize === size;
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => handleGridSizeChange(size)}
+                  className={`theme-option-label relative z-10 inline-flex min-w-20 items-center justify-center rounded-xl px-3 py-1.5 text-sm font-semibold transition ${
+                    isActive
+                      ? "theme-option-active text-[var(--button-solid-text)]"
+                      : "text-[var(--muted-text)] hover:bg-[var(--surface-strong)]"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  {size}x{size}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
           <div className="control-frame relative inline-grid grid-cols-3 rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-bg)] p-1 shadow-inner">
@@ -479,18 +462,23 @@ export default function Home() {
         )}
 
         <div className="overflow-x-auto pb-1">
-          <div className="mx-auto grid w-fit grid-cols-9 gap-1 rounded-2xl border border-[var(--grid-outline)] bg-[var(--grid-shell-bg)] p-1.5">
+          <div
+            className="mx-auto grid w-fit gap-1 rounded-2xl border border-[var(--grid-outline)] bg-[var(--grid-shell-bg)] p-1.5"
+            style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+          >
             {grid.map((row, rowIndex) =>
               row.map((value, colIndex) => {
-                const thickTop = rowIndex % 3 === 0 ? "border-t-2 border-t-[var(--grid-major-line)]" : "border-t";
+                const thickTop = rowIndex % blockSize === 0 ? "border-t-2 border-t-[var(--grid-major-line)]" : "border-t";
                 const thickLeft =
-                  colIndex % 3 === 0 ? "border-l-2 border-l-[var(--grid-major-line)]" : "border-l border-l-[var(--grid-minor-line)]";
+                  colIndex % blockSize === 0
+                    ? "border-l-2 border-l-[var(--grid-major-line)]"
+                    : "border-l border-l-[var(--grid-minor-line)]";
                 const thickRight =
-                  colIndex === GRID_SIZE - 1
+                  colIndex === gridSize - 1
                     ? "border-r-2 border-r-[var(--grid-major-line)]"
                     : "border-r border-r-[var(--grid-minor-line)]";
                 const thickBottom =
-                  rowIndex === GRID_SIZE - 1
+                  rowIndex === gridSize - 1
                     ? "border-b-2 border-b-[var(--grid-major-line)]"
                     : "border-b border-b-[var(--grid-minor-line)]";
                 const numberColor = solverFilledMask[rowIndex][colIndex]
@@ -506,7 +494,7 @@ export default function Home() {
                     value={value}
                     onChange={(event) => handleChange(rowIndex, colIndex, event)}
                     disabled={isLoading}
-                    className={`h-9 w-9 rounded-md bg-[var(--grid-cell-bg)] text-center text-base font-semibold outline-none transition focus:bg-[var(--grid-focus-bg)] focus:ring-2 focus:ring-[var(--accent-border)] disabled:cursor-not-allowed disabled:opacity-80 sm:h-11 sm:w-11 sm:text-lg ${numberColor} ${thickTop} ${thickLeft} ${thickRight} ${thickBottom}`}
+                    className={`rounded-md bg-[var(--grid-cell-bg)] text-center font-semibold outline-none transition focus:bg-[var(--grid-focus-bg)] focus:ring-2 focus:ring-[var(--accent-border)] disabled:cursor-not-allowed disabled:opacity-80 ${cellSizeClass} ${numberColor} ${thickTop} ${thickLeft} ${thickRight} ${thickBottom}`}
                     aria-label={`Cell ${rowIndex + 1}-${colIndex + 1}`}
                   />
                 );
@@ -525,6 +513,7 @@ export default function Home() {
                 <thead>
                   <tr className="border-b border-[var(--panel-border)] text-[var(--muted-text)]">
                     <th className="px-2 py-2 font-semibold">Time</th>
+                    <th className="px-2 py-2 font-semibold">Size</th>
                     <th className="px-2 py-2 font-semibold">Difficulty</th>
                     <th className="px-2 py-2 font-semibold">Status</th>
                   </tr>
@@ -533,6 +522,7 @@ export default function Home() {
                   {recentSolves.map((entry, index) => (
                     <tr key={`${entry.timestamp}-${index}`} className="border-b border-[var(--panel-border)]/60 last:border-b-0">
                       <td className="outlined-text px-2 py-2">{new Date(entry.timestamp).toLocaleString()}</td>
+                      <td className="outlined-text px-2 py-2">{entry.size}x{entry.size}</td>
                       <td className="outlined-text px-2 py-2">{entry.difficulty}</td>
                       <td className="outlined-text px-2 py-2 text-emerald-300">{entry.status}</td>
                     </tr>

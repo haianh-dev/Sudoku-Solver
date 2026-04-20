@@ -5,16 +5,182 @@ import { ChangeEvent, useEffect, useState } from "react";
 const GRID_SIZE = 9;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const EMPTY_GRID = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => ""));
-const SAMPLE_PUZZLE: number[][] = [
-  [5, 3, 0, 0, 7, 0, 0, 0, 0],
-  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-  [4, 0, 0, 8, 0, 3, 0, 0, 1],
-  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-  [0, 0, 0, 0, 8, 0, 0, 7, 9]
+type PuzzleDifficulty = "Easy" | "Medium" | "Hard";
+
+type SamplePuzzle = {
+  difficulty: PuzzleDifficulty;
+  board: number[][];
+};
+
+const SAMPLE_PUZZLES: SamplePuzzle[] = [
+  {
+    difficulty: "Easy",
+    board: [
+      [5, 3, 0, 0, 7, 0, 0, 0, 0],
+      [6, 0, 0, 1, 9, 5, 0, 0, 0],
+      [0, 9, 8, 0, 0, 0, 0, 6, 0],
+      [8, 0, 0, 0, 6, 0, 0, 0, 3],
+      [4, 0, 0, 8, 0, 3, 0, 0, 1],
+      [7, 0, 0, 0, 2, 0, 0, 0, 6],
+      [0, 6, 0, 0, 0, 0, 2, 8, 0],
+      [0, 0, 0, 4, 1, 9, 0, 0, 5],
+      [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ]
+  },
+  {
+    difficulty: "Easy",
+    board: [
+      [0, 2, 0, 6, 0, 8, 0, 0, 0],
+      [5, 8, 0, 0, 0, 9, 7, 0, 0],
+      [0, 0, 0, 0, 4, 0, 0, 0, 0],
+      [3, 7, 0, 0, 0, 0, 5, 0, 0],
+      [6, 0, 0, 0, 0, 0, 0, 0, 4],
+      [0, 0, 8, 0, 0, 0, 0, 1, 3],
+      [0, 0, 0, 0, 2, 0, 0, 0, 0],
+      [0, 0, 9, 8, 0, 0, 0, 3, 6],
+      [0, 0, 0, 3, 0, 6, 0, 9, 0]
+    ]
+  },
+  {
+    difficulty: "Easy",
+    board: [
+      [2, 0, 0, 0, 8, 0, 3, 0, 0],
+      [0, 6, 0, 0, 7, 0, 0, 8, 4],
+      [0, 3, 0, 5, 0, 0, 2, 0, 9],
+      [0, 0, 0, 1, 0, 5, 4, 0, 8],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [4, 0, 2, 7, 0, 6, 0, 0, 0],
+      [3, 0, 1, 0, 0, 7, 0, 4, 0],
+      [7, 2, 0, 0, 4, 0, 0, 6, 0],
+      [0, 0, 4, 0, 1, 0, 0, 0, 3]
+    ]
+  },
+  {
+    difficulty: "Easy",
+    board: [
+      [0, 0, 0, 2, 6, 0, 7, 0, 1],
+      [6, 8, 0, 0, 7, 0, 0, 9, 0],
+      [1, 9, 0, 0, 0, 4, 5, 0, 0],
+      [8, 2, 0, 1, 0, 0, 0, 4, 0],
+      [0, 0, 4, 6, 0, 2, 9, 0, 0],
+      [0, 5, 0, 0, 0, 3, 0, 2, 8],
+      [0, 0, 9, 3, 0, 0, 0, 7, 4],
+      [0, 4, 0, 0, 5, 0, 0, 3, 6],
+      [7, 0, 3, 0, 1, 8, 0, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Medium",
+    board: [
+      [0, 0, 0, 0, 0, 0, 2, 0, 0],
+      [0, 8, 0, 0, 0, 7, 0, 9, 0],
+      [6, 0, 2, 0, 0, 0, 5, 0, 0],
+      [0, 7, 0, 0, 6, 0, 0, 0, 0],
+      [0, 0, 0, 9, 0, 1, 0, 0, 0],
+      [0, 0, 0, 0, 2, 0, 0, 4, 0],
+      [0, 0, 5, 0, 0, 0, 6, 0, 3],
+      [0, 9, 0, 4, 0, 0, 0, 7, 0],
+      [0, 0, 6, 0, 0, 0, 0, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Medium",
+    board: [
+      [0, 0, 0, 2, 0, 0, 0, 6, 3],
+      [3, 0, 0, 0, 0, 5, 4, 0, 1],
+      [0, 0, 1, 0, 0, 3, 9, 8, 0],
+      [0, 0, 0, 0, 0, 0, 0, 9, 0],
+      [0, 0, 0, 5, 3, 8, 0, 0, 0],
+      [0, 3, 0, 0, 0, 0, 0, 0, 0],
+      [0, 2, 6, 3, 0, 0, 5, 0, 0],
+      [5, 0, 3, 7, 0, 0, 0, 0, 8],
+      [4, 7, 0, 0, 0, 1, 0, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Medium",
+    board: [
+      [0, 0, 8, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 6, 0, 0, 0, 0, 3],
+      [0, 7, 0, 0, 9, 0, 2, 0, 0],
+      [0, 5, 0, 0, 0, 7, 0, 0, 0],
+      [0, 0, 0, 0, 4, 5, 7, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 3, 0],
+      [0, 0, 1, 0, 0, 0, 0, 6, 8],
+      [0, 0, 8, 5, 0, 0, 0, 1, 0],
+      [0, 9, 0, 0, 0, 0, 4, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Medium",
+    board: [
+      [0, 0, 0, 0, 0, 0, 0, 1, 2],
+      [0, 0, 0, 0, 0, 0, 7, 0, 0],
+      [0, 0, 1, 0, 9, 5, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 7, 0, 8, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 4, 1, 9, 5, 0, 0],
+      [0, 0, 8, 0, 0, 0, 0, 0, 0],
+      [6, 1, 0, 0, 0, 0, 0, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Hard",
+    board: [
+      [1, 0, 0, 0, 0, 7, 0, 9, 0],
+      [0, 3, 0, 0, 2, 0, 0, 0, 8],
+      [0, 0, 9, 6, 0, 0, 5, 0, 0],
+      [0, 0, 5, 3, 0, 0, 9, 0, 0],
+      [0, 1, 0, 0, 8, 0, 0, 0, 2],
+      [6, 0, 0, 0, 0, 4, 0, 0, 0],
+      [3, 0, 0, 0, 0, 0, 0, 1, 0],
+      [0, 4, 0, 0, 0, 0, 0, 0, 7],
+      [0, 0, 7, 0, 0, 0, 3, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Hard",
+    board: [
+      [8, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 3, 6, 0, 0, 0, 0, 0],
+      [0, 7, 0, 0, 9, 0, 2, 0, 0],
+      [0, 5, 0, 0, 0, 7, 0, 0, 0],
+      [0, 0, 0, 0, 4, 5, 7, 0, 0],
+      [0, 0, 0, 1, 0, 0, 0, 3, 0],
+      [0, 0, 1, 0, 0, 0, 0, 6, 8],
+      [0, 0, 8, 5, 0, 0, 0, 1, 0],
+      [0, 9, 0, 0, 0, 0, 4, 0, 0]
+    ]
+  },
+  {
+    difficulty: "Hard",
+    board: [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 3, 0, 8, 5],
+      [0, 0, 1, 0, 2, 0, 0, 0, 0],
+      [0, 0, 0, 5, 0, 7, 0, 0, 0],
+      [0, 0, 4, 0, 0, 0, 1, 0, 0],
+      [0, 9, 0, 0, 0, 0, 0, 0, 0],
+      [5, 0, 0, 0, 0, 0, 0, 7, 3],
+      [0, 0, 2, 0, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 4, 0, 0, 0, 9]
+    ]
+  },
+  {
+    difficulty: "Hard",
+    board: [
+      [0, 0, 5, 3, 0, 0, 0, 0, 0],
+      [8, 0, 0, 0, 0, 0, 0, 2, 0],
+      [0, 7, 0, 0, 1, 0, 5, 0, 0],
+      [4, 0, 0, 0, 0, 5, 3, 0, 0],
+      [0, 1, 0, 0, 7, 0, 0, 0, 6],
+      [0, 0, 3, 2, 0, 0, 0, 8, 0],
+      [0, 6, 0, 5, 0, 0, 0, 0, 9],
+      [0, 0, 4, 0, 0, 0, 0, 3, 0],
+      [0, 0, 0, 0, 0, 9, 7, 0, 0]
+    ]
+  }
 ];
 
 type SolveResponse = {
@@ -74,6 +240,10 @@ function createBooleanGrid(defaultValue: boolean): boolean[][] {
   return Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => defaultValue));
 }
 
+function isGridEmpty(grid: string[][]): boolean {
+  return grid.every((row) => row.every((value) => value === ""));
+}
+
 export default function Home() {
   const [grid, setGrid] = useState<string[][]>(EMPTY_GRID);
   const [solverFilledMask, setSolverFilledMask] = useState<boolean[][]>(createBooleanGrid(false));
@@ -81,6 +251,7 @@ export default function Home() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+  const [lastRandomPuzzleIndex, setLastRandomPuzzleIndex] = useState<number | null>(null);
   const activeThemeIndex = Math.max(
     0,
     THEME_OPTIONS.findIndex((option) => option.value === themeMode)
@@ -127,13 +298,25 @@ export default function Home() {
   };
 
   const handleRandom = () => {
-    setGrid(toDisplayGrid(SAMPLE_PUZZLE));
+    const candidateIndexes = SAMPLE_PUZZLES.map((_, index) => index).filter((index) => index !== lastRandomPuzzleIndex);
+    const indexPool = candidateIndexes.length > 0 ? candidateIndexes : [0];
+    const randomIndex = indexPool[Math.floor(Math.random() * indexPool.length)];
+    const selectedPuzzle = SAMPLE_PUZZLES[randomIndex];
+
+    setGrid(toDisplayGrid(selectedPuzzle.board));
     setSolverFilledMask(createBooleanGrid(false));
-    setStatusMessage("Sample puzzle loaded. Click Solve to test the solver.");
+    setLastRandomPuzzleIndex(randomIndex);
+    setStatusMessage(`Random puzzle loaded (${selectedPuzzle.difficulty}). Click Solve to test the solver.`);
     setErrorMessage(null);
   };
 
   const handleSolve = async () => {
+    if (isGridEmpty(grid)) {
+      setStatusMessage(null);
+      setErrorMessage("Please enter at least some numbers or generate a random puzzle first!");
+      return;
+    }
+
     setIsLoading(true);
     setStatusMessage(null);
     setErrorMessage(null);
@@ -246,7 +429,7 @@ export default function Home() {
             disabled={isLoading}
             className="control-pill outlined-text rounded-xl border border-[var(--accent-border)] bg-[var(--surface-strong)] px-4 py-2 text-sm font-semibold text-[var(--accent-text)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Load Sample
+            Random Puzzle
           </button>
         </div>
 

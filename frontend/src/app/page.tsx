@@ -3,7 +3,7 @@
 import { ChangeEvent, useState } from "react";
 
 const GRID_SIZE = 9;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const EMPTY_GRID = Array.from({ length: GRID_SIZE }, () => Array.from({ length: GRID_SIZE }, () => ""));
 const SAMPLE_PUZZLE: number[][] = [
   [5, 3, 0, 0, 7, 0, 0, 0, 0],
